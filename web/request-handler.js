@@ -12,52 +12,46 @@ exports.handleRequest = function(request, response) {
     if (err) { 
       throw err;
     }
-    httpHelpers.serveAssets(response, data);
+    httpHelpers.serveAssets(response, data); 
   }
 
-  if (request.method == 'POST') {
-    var body = '';
+  var noFile = function (isFile) {
+    statusCode = 404;
+    response.writeHead(statusCode, headers);  
+    response.end();  
+  }
+ 
+  var serveFile = function() { 
+    var path = archive.paths.siteAssets + "/index.html"; 
+
+    if (request.url !== '/') { 
+      path = archive.paths.archivedSites + request.url;
+    }
+
+    response.writeHead(statusCode, headers); 
+    fs.readFile(path, onFileReadDone);
+  }
+
+  var postComplete = function() {
+      statusCode = 302;
+      response.writeHead(statusCode, headers); 
+      response.end();
+  }
+
+  if (request.method == 'POST') {    var body = ''; 
 
     request.on('data', function(data) {
-      body += data;
+      body += data; 
     }); 
      
     request.on('end', function() {
-      var message = JSON.parse(body);
-      message['createdAt'] = new Date().toISOString();
-
-      messages.push(message);
-
-      statusCode = 201;
-      response.writeHead(statusCode, headers);
-      response.end();
+      archive.addUrlToList(JSON.parse(body).url, postComplete);
     }); 
 
   } else { //  GET
 
-    // if (request.url !== "/classes/messages" && request.url !== "/log") {
-    //   statusCode = 404;
-    //   response.writeHead(statusCode, headers); 
-    //   response.end();
-    // } else {
-
-      var path = archive.paths.siteAssets + "/index.html";
-
-      if (request.url !== '/') {
-        path = archive.paths.archivedSites + request.url;
-      }
-
-      console.log(path);
-
-      response.writeHead(statusCode, headers); 
-
-
-      fs.readFile(path, onFileReadDone); 
-
-
-
-      //response.end(archive.paths.list);  /// for responding to list requests
-    //}
+    // go see if request url is in /archives/sites as a file name
+    archive.isUrlArchived(request.url, noFile, serveFile);
 
   }
 };
