@@ -12,6 +12,7 @@ exports.handleRequest = function(request, response) {
     if (err) { 
       throw err;
     }
+
     httpHelpers.serveAssets(response, data); 
   }
 
@@ -33,12 +34,13 @@ exports.handleRequest = function(request, response) {
   }
 
   var postComplete = function() {
-      statusCode = 302;
-      response.writeHead(statusCode, headers); 
-      response.end();
+    statusCode = 302;
+    response.writeHead(statusCode, headers); 
+    response.end();
   }
 
-  if (request.method == 'POST') {    var body = ''; 
+  if (request.method == 'POST') {    
+    var body = ''; 
 
     request.on('data', function(data) {
       body += data; 
@@ -49,10 +51,7 @@ exports.handleRequest = function(request, response) {
     }); 
 
   } else { //  GET
-
-    // go see if request url is in /archives/sites as a file name
     archive.isUrlArchived(request.url, noFile, serveFile);
-
   }
 };
 
